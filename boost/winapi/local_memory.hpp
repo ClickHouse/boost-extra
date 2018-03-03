@@ -1,20 +1,53 @@
 /*
- * Copyright 2017 Andrey Semashev
+ * Copyright 2010 Vicente J. Botet Escriba
+ * Copyright 2015 Andrey Semashev
  *
  * Distributed under the Boost Software License, Version 1.0.
  * See http://www.boost.org/LICENSE_1_0.txt
- *
- * This header is deprecated, use boost/winapi/local_memory.hpp instead.
  */
 
-#ifndef BOOST_DETAIL_WINAPI_LOCAL_MEMORY_HPP
-#define BOOST_DETAIL_WINAPI_LOCAL_MEMORY_HPP
+#ifndef BOOST_WINAPI_LOCAL_MEMORY_HPP_INCLUDED_
+#define BOOST_WINAPI_LOCAL_MEMORY_HPP_INCLUDED_
 
-#include <boost/winapi/local_memory.hpp>
-#include <boost/detail/winapi/detail/deprecated_namespace.hpp>
+#include <boost/winapi/basic_types.hpp>
 
 #ifdef BOOST_HAS_PRAGMA_ONCE
 #pragma once
 #endif
 
-#endif // BOOST_DETAIL_WINAPI_LOCAL_MEMORY_HPP
+#if BOOST_WINAPI_PARTITION_APP_SYSTEM
+
+#if !defined( BOOST_USE_WINDOWS_H )
+namespace boost { namespace winapi {
+typedef HANDLE_ HLOCAL_;
+}}
+
+extern "C" {
+BOOST_SYMBOL_IMPORT boost::winapi::HLOCAL_ WINAPI
+LocalAlloc(
+    boost::winapi::UINT_ uFlags,
+    boost::winapi::SIZE_T_ uBytes);
+
+BOOST_SYMBOL_IMPORT boost::winapi::HLOCAL_ WINAPI
+LocalReAlloc(
+    boost::winapi::HLOCAL_ hMem,
+    boost::winapi::SIZE_T_ uBytes,
+    boost::winapi::UINT_ uFlags);
+
+BOOST_SYMBOL_IMPORT boost::winapi::HLOCAL_ WINAPI LocalFree(boost::winapi::HLOCAL_ hMem);
+} // extern "C"
+#endif
+
+namespace boost {
+namespace winapi {
+#if defined( BOOST_USE_WINDOWS_H )
+typedef ::HLOCAL HLOCAL_;
+#endif
+using ::LocalAlloc;
+using ::LocalReAlloc;
+using ::LocalFree;
+}
+}
+
+#endif // BOOST_WINAPI_PARTITION_APP_SYSTEM
+#endif // BOOST_WINAPI_LOCAL_MEMORY_HPP_INCLUDED_
