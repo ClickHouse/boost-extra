@@ -29,8 +29,7 @@
 #include <boost/smart_ptr/detail/sp_counted_base.hpp>
 #include <boost/smart_ptr/detail/sp_counted_impl.hpp>
 #include <boost/smart_ptr/detail/sp_disable_deprecated.hpp>
-#include <boost/smart_ptr/detail/sp_noexcept.hpp>
-#include <boost/config/workaround.hpp>
+#include <boost/detail/workaround.hpp>
 // In order to avoid circular dependencies with Boost.TR1
 // we make sure that our include of <memory> doesn't try to
 // pull in the TR1 headers: that's why we use this header 
@@ -119,14 +118,14 @@ private:
 
 public:
 
-    BOOST_CONSTEXPR shared_count() BOOST_SP_NOEXCEPT: pi_(0)
+    BOOST_CONSTEXPR shared_count(): pi_(0) // nothrow
 #if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
         , id_(shared_count_id)
 #endif
     {
     }
 
-    BOOST_CONSTEXPR explicit shared_count( sp_counted_base * pi ) BOOST_SP_NOEXCEPT: pi_( pi )
+    BOOST_CONSTEXPR explicit shared_count( sp_counted_base * pi ): pi_( pi ) // nothrow
 #if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
         , id_(shared_count_id)
 #endif
@@ -422,7 +421,7 @@ public:
         r.release();
     }
 
-    ~shared_count() /*BOOST_SP_NOEXCEPT*/
+    ~shared_count() // nothrow
     {
         if( pi_ != 0 ) pi_->release();
 #if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
@@ -430,7 +429,7 @@ public:
 #endif
     }
 
-    shared_count(shared_count const & r) BOOST_SP_NOEXCEPT: pi_(r.pi_)
+    shared_count(shared_count const & r): pi_(r.pi_) // nothrow
 #if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
         , id_(shared_count_id)
 #endif
@@ -440,7 +439,7 @@ public:
 
 #if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
 
-    shared_count(shared_count && r) BOOST_SP_NOEXCEPT: pi_(r.pi_)
+    shared_count(shared_count && r): pi_(r.pi_) // nothrow
 #if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
         , id_(shared_count_id)
 #endif
@@ -451,9 +450,9 @@ public:
 #endif
 
     explicit shared_count(weak_count const & r); // throws bad_weak_ptr when r.use_count() == 0
-    shared_count( weak_count const & r, sp_nothrow_tag ) BOOST_SP_NOEXCEPT; // constructs an empty *this when r.use_count() == 0
+    shared_count( weak_count const & r, sp_nothrow_tag ); // constructs an empty *this when r.use_count() == 0
 
-    shared_count & operator= (shared_count const & r) BOOST_SP_NOEXCEPT
+    shared_count & operator= (shared_count const & r) // nothrow
     {
         sp_counted_base * tmp = r.pi_;
 
@@ -467,49 +466,49 @@ public:
         return *this;
     }
 
-    void swap(shared_count & r) BOOST_SP_NOEXCEPT
+    void swap(shared_count & r) // nothrow
     {
         sp_counted_base * tmp = r.pi_;
         r.pi_ = pi_;
         pi_ = tmp;
     }
 
-    long use_count() const BOOST_SP_NOEXCEPT
+    long use_count() const // nothrow
     {
         return pi_ != 0? pi_->use_count(): 0;
     }
 
-    bool unique() const BOOST_SP_NOEXCEPT
+    bool unique() const // nothrow
     {
         return use_count() == 1;
     }
 
-    bool empty() const BOOST_SP_NOEXCEPT
+    bool empty() const // nothrow
     {
         return pi_ == 0;
     }
 
-    friend inline bool operator==(shared_count const & a, shared_count const & b) BOOST_SP_NOEXCEPT
+    friend inline bool operator==(shared_count const & a, shared_count const & b)
     {
         return a.pi_ == b.pi_;
     }
 
-    friend inline bool operator<(shared_count const & a, shared_count const & b) BOOST_SP_NOEXCEPT
+    friend inline bool operator<(shared_count const & a, shared_count const & b)
     {
         return std::less<sp_counted_base *>()( a.pi_, b.pi_ );
     }
 
-    void * get_deleter( sp_typeinfo const & ti ) const BOOST_SP_NOEXCEPT
+    void * get_deleter( sp_typeinfo const & ti ) const
     {
         return pi_? pi_->get_deleter( ti ): 0;
     }
 
-    void * get_local_deleter( sp_typeinfo const & ti ) const BOOST_SP_NOEXCEPT
+    void * get_local_deleter( sp_typeinfo const & ti ) const
     {
         return pi_? pi_->get_local_deleter( ti ): 0;
     }
 
-    void * get_untyped_deleter() const BOOST_SP_NOEXCEPT
+    void * get_untyped_deleter() const
     {
         return pi_? pi_->get_untyped_deleter(): 0;
     }
@@ -530,14 +529,14 @@ private:
 
 public:
 
-    BOOST_CONSTEXPR weak_count() BOOST_SP_NOEXCEPT: pi_(0)
+    BOOST_CONSTEXPR weak_count(): pi_(0) // nothrow
 #if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
         , id_(weak_count_id)
 #endif
     {
     }
 
-    weak_count(shared_count const & r) BOOST_SP_NOEXCEPT: pi_(r.pi_)
+    weak_count(shared_count const & r): pi_(r.pi_) // nothrow
 #if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
         , id_(weak_count_id)
 #endif
@@ -545,7 +544,7 @@ public:
         if(pi_ != 0) pi_->weak_add_ref();
     }
 
-    weak_count(weak_count const & r) BOOST_SP_NOEXCEPT: pi_(r.pi_)
+    weak_count(weak_count const & r): pi_(r.pi_) // nothrow
 #if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
         , id_(weak_count_id)
 #endif
@@ -557,7 +556,7 @@ public:
 
 #if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
 
-    weak_count(weak_count && r) BOOST_SP_NOEXCEPT: pi_(r.pi_)
+    weak_count(weak_count && r): pi_(r.pi_) // nothrow
 #if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
         , id_(weak_count_id)
 #endif
@@ -567,7 +566,7 @@ public:
 
 #endif
 
-    ~weak_count() /*BOOST_SP_NOEXCEPT*/
+    ~weak_count() // nothrow
     {
         if(pi_ != 0) pi_->weak_release();
 #if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
@@ -575,7 +574,7 @@ public:
 #endif
     }
 
-    weak_count & operator= (shared_count const & r) BOOST_SP_NOEXCEPT
+    weak_count & operator= (shared_count const & r) // nothrow
     {
         sp_counted_base * tmp = r.pi_;
 
@@ -589,7 +588,7 @@ public:
         return *this;
     }
 
-    weak_count & operator= (weak_count const & r) BOOST_SP_NOEXCEPT
+    weak_count & operator= (weak_count const & r) // nothrow
     {
         sp_counted_base * tmp = r.pi_;
 
@@ -603,29 +602,29 @@ public:
         return *this;
     }
 
-    void swap(weak_count & r) BOOST_SP_NOEXCEPT
+    void swap(weak_count & r) // nothrow
     {
         sp_counted_base * tmp = r.pi_;
         r.pi_ = pi_;
         pi_ = tmp;
     }
 
-    long use_count() const BOOST_SP_NOEXCEPT
+    long use_count() const // nothrow
     {
         return pi_ != 0? pi_->use_count(): 0;
     }
 
-    bool empty() const BOOST_SP_NOEXCEPT
+    bool empty() const // nothrow
     {
         return pi_ == 0;
     }
 
-    friend inline bool operator==(weak_count const & a, weak_count const & b) BOOST_SP_NOEXCEPT
+    friend inline bool operator==(weak_count const & a, weak_count const & b)
     {
         return a.pi_ == b.pi_;
     }
 
-    friend inline bool operator<(weak_count const & a, weak_count const & b) BOOST_SP_NOEXCEPT
+    friend inline bool operator<(weak_count const & a, weak_count const & b)
     {
         return std::less<sp_counted_base *>()(a.pi_, b.pi_);
     }
@@ -642,7 +641,7 @@ inline shared_count::shared_count( weak_count const & r ): pi_( r.pi_ )
     }
 }
 
-inline shared_count::shared_count( weak_count const & r, sp_nothrow_tag ) BOOST_SP_NOEXCEPT: pi_( r.pi_ )
+inline shared_count::shared_count( weak_count const & r, sp_nothrow_tag ): pi_( r.pi_ )
 #if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
         , id_(shared_count_id)
 #endif

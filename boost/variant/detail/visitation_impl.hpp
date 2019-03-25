@@ -18,6 +18,7 @@
 #include <boost/variant/detail/backup_holder.hpp>
 #include <boost/variant/detail/cast_storage.hpp>
 #include <boost/variant/detail/forced_return.hpp>
+#include <boost/variant/detail/generic_result_type.hpp>
 #include <boost/variant/variant_fwd.hpp> // for BOOST_VARIANT_DO_NOT_USE_VARIADIC_TEMPLATES
 
 #include <boost/mpl/eval_if.hpp>
@@ -101,7 +102,8 @@ struct visitation_impl_step< LastIter,LastIter >
 //
 
 template <typename Visitor, typename VoidPtrCV, typename T>
-inline typename Visitor::result_type
+inline
+    BOOST_VARIANT_AUX_GENERIC_RESULT_TYPE(typename Visitor::result_type)
 visitation_impl_invoke_impl(
       int, Visitor& visitor, VoidPtrCV storage, T*
     , mpl::true_// never_uses_backup
@@ -113,7 +115,8 @@ visitation_impl_invoke_impl(
 }
 
 template <typename Visitor, typename VoidPtrCV, typename T>
-inline typename Visitor::result_type
+inline
+    BOOST_VARIANT_AUX_GENERIC_RESULT_TYPE(typename Visitor::result_type)
 visitation_impl_invoke_impl(
       int internal_which, Visitor& visitor, VoidPtrCV storage, T*
     , mpl::false_// never_uses_backup
@@ -134,7 +137,8 @@ visitation_impl_invoke_impl(
 }
 
 template <typename Visitor, typename VoidPtrCV, typename T, typename NoBackupFlag>
-inline typename Visitor::result_type
+inline
+    BOOST_VARIANT_AUX_GENERIC_RESULT_TYPE(typename Visitor::result_type)
 visitation_impl_invoke(
       int internal_which, Visitor& visitor, VoidPtrCV storage, T* t
     , NoBackupFlag
@@ -154,7 +158,8 @@ visitation_impl_invoke(
 }
 
 template <typename Visitor, typename VoidPtrCV, typename NBF>
-inline typename Visitor::result_type
+inline
+    BOOST_VARIANT_AUX_GENERIC_RESULT_TYPE(typename Visitor::result_type)
 visitation_impl_invoke(int, Visitor&, VoidPtrCV, apply_visitor_unrolled*, NBF, long)
 {
     // should never be here at runtime!
@@ -173,7 +178,8 @@ template <
     , typename Visitor, typename VPCV
     , typename NBF
     >
-inline typename Visitor::result_type
+inline
+    BOOST_VARIANT_AUX_GENERIC_RESULT_TYPE(typename Visitor::result_type)
 visitation_impl(
       int, int, Visitor&, VPCV
     , mpl::true_ // is_apply_visitor_unrolled
@@ -190,7 +196,8 @@ template <
     , typename Visitor, typename VoidPtrCV
     , typename NoBackupFlag
     >
-inline typename Visitor::result_type
+inline
+    BOOST_VARIANT_AUX_GENERIC_RESULT_TYPE(typename Visitor::result_type)
 visitation_impl(
       const int internal_which, const int logical_which
     , Visitor& visitor, VoidPtrCV storage

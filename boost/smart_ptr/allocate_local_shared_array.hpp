@@ -1,5 +1,5 @@
 /*
-Copyright 2017-2019 Glen Joseph Fernandes
+Copyright 2017 Glen Joseph Fernandes
 (glenjofe@gmail.com)
 
 Distributed under the Boost Software License, Version 1.0.
@@ -13,6 +13,22 @@ Distributed under the Boost Software License, Version 1.0.
 
 namespace boost {
 namespace detail {
+
+template<class>
+struct lsp_if_array { };
+
+template<class T>
+struct lsp_if_array<T[]> {
+    typedef boost::local_shared_ptr<T[]> type;
+};
+
+template<class>
+struct lsp_if_size_array { };
+
+template<class T, std::size_t N>
+struct lsp_if_size_array<T[N]> {
+    typedef boost::local_shared_ptr<T[N]> type;
+};
 
 class BOOST_SYMBOL_VISIBLE lsp_array_base
     : public local_counted_base {
@@ -68,16 +84,15 @@ private:
 } /* detail */
 
 template<class T, class A>
-inline typename enable_if_<is_unbounded_array<T>::value,
-    local_shared_ptr<T> >::type
+inline typename detail::lsp_if_array<T>::type
 allocate_local_shared(const A& allocator, std::size_t count)
 {
-    typedef typename remove_extent<T>::type type;
+    typedef typename detail::sp_array_element<T>::type type;
     typedef typename detail::sp_array_scalar<T>::type scalar;
     typedef typename detail::sp_bind_allocator<A, scalar>::type other;
     typedef detail::lsp_array_state<other> state;
     typedef detail::sp_array_base<state> base;
-    std::size_t size = count * detail::sp_array_count<type, scalar>::value;
+    std::size_t size = count * detail::sp_array_count<type>::value;
     detail::sp_array_result<other, base> result(allocator, size);
     base* node = result.get();
     scalar* start = detail::sp_array_start<base, scalar>(node);
@@ -90,16 +105,15 @@ allocate_local_shared(const A& allocator, std::size_t count)
 }
 
 template<class T, class A>
-inline typename enable_if_<is_bounded_array<T>::value,
-    local_shared_ptr<T> >::type
+inline typename detail::lsp_if_size_array<T>::type
 allocate_local_shared(const A& allocator)
 {
-    typedef typename remove_extent<T>::type type;
+    enum {
+        size = detail::sp_array_count<T>::value
+    };
+    typedef typename detail::sp_array_element<T>::type type;
     typedef typename detail::sp_array_scalar<T>::type scalar;
     typedef typename detail::sp_bind_allocator<A, scalar>::type other;
-    enum {
-        size = detail::sp_array_count<T, scalar>::value
-    };
     typedef detail::lsp_size_array_state<other, size> state;
     typedef detail::sp_array_base<state> base;
     detail::sp_array_result<other, base> result(allocator, size);
@@ -114,25 +128,22 @@ allocate_local_shared(const A& allocator)
 }
 
 template<class T, class A>
-inline typename enable_if_<is_unbounded_array<T>::value,
-    local_shared_ptr<T> >::type
+inline typename detail::lsp_if_array<T>::type
 allocate_local_shared(const A& allocator, std::size_t count,
-    const typename remove_extent<T>::type& value)
+    const typename detail::sp_array_element<T>::type& value)
 {
-    typedef typename remove_extent<T>::type type;
+    typedef typename detail::sp_array_element<T>::type type;
     typedef typename detail::sp_array_scalar<T>::type scalar;
     typedef typename detail::sp_bind_allocator<A, scalar>::type other;
     typedef detail::lsp_array_state<other> state;
     typedef detail::sp_array_base<state> base;
-    enum {
-        total = detail::sp_array_count<type, scalar>::value
-    };
-    std::size_t size = count * total;
+    std::size_t size = count * detail::sp_array_count<type>::value;
     detail::sp_array_result<other, base> result(allocator, size);
     base* node = result.get();
     scalar* start = detail::sp_array_start<base, scalar>(node);
     ::new(static_cast<void*>(node)) base(allocator, size,
-        reinterpret_cast<const scalar*>(&value), total, start);
+        reinterpret_cast<const scalar*>(&value),
+        detail::sp_array_count<type>::value, start);
     detail::lsp_array_base& local = node->state().base();
     local.set(node);
     result.release();
@@ -141,17 +152,16 @@ allocate_local_shared(const A& allocator, std::size_t count,
 }
 
 template<class T, class A>
-inline typename enable_if_<is_bounded_array<T>::value,
-    local_shared_ptr<T> >::type
+inline typename detail::lsp_if_size_array<T>::type
 allocate_local_shared(const A& allocator,
-    const typename remove_extent<T>::type& value)
+    const typename detail::sp_array_element<T>::type& value)
 {
-    typedef typename remove_extent<T>::type type;
+    enum {
+        size = detail::sp_array_count<T>::value
+    };
+    typedef typename detail::sp_array_element<T>::type type;
     typedef typename detail::sp_array_scalar<T>::type scalar;
     typedef typename detail::sp_bind_allocator<A, scalar>::type other;
-    enum {
-        size = detail::sp_array_count<T, scalar>::value
-    };
     typedef detail::lsp_size_array_state<other, size> state;
     typedef detail::sp_array_base<state> base;
     detail::sp_array_result<other, base> result(allocator, size);
@@ -159,7 +169,7 @@ allocate_local_shared(const A& allocator,
     scalar* start = detail::sp_array_start<base, scalar>(node);
     ::new(static_cast<void*>(node)) base(allocator, size,
         reinterpret_cast<const scalar*>(&value),
-        detail::sp_array_count<type, scalar>::value, start);
+        detail::sp_array_count<type>::value, start);
     detail::lsp_array_base& local = node->state().base();
     local.set(node);
     result.release();
@@ -168,16 +178,15 @@ allocate_local_shared(const A& allocator,
 }
 
 template<class T, class A>
-inline typename enable_if_<is_unbounded_array<T>::value,
-    local_shared_ptr<T> >::type
+inline typename detail::lsp_if_array<T>::type
 allocate_local_shared_noinit(const A& allocator, std::size_t count)
 {
-    typedef typename remove_extent<T>::type type;
+    typedef typename detail::sp_array_element<T>::type type;
     typedef typename detail::sp_array_scalar<T>::type scalar;
     typedef typename detail::sp_bind_allocator<A, scalar>::type other;
     typedef detail::lsp_array_state<other> state;
     typedef detail::sp_array_base<state, false> base;
-    std::size_t size = count * detail::sp_array_count<type, scalar>::value;
+    std::size_t size = count * detail::sp_array_count<type>::value;
     detail::sp_array_result<other, base> result(allocator, size);
     base* node = result.get();
     scalar* start = detail::sp_array_start<base, scalar>(node);
@@ -191,16 +200,15 @@ allocate_local_shared_noinit(const A& allocator, std::size_t count)
 }
 
 template<class T, class A>
-inline typename enable_if_<is_bounded_array<T>::value,
-    local_shared_ptr<T> >::type
+inline typename detail::lsp_if_size_array<T>::type
 allocate_local_shared_noinit(const A& allocator)
 {
-    typedef typename remove_extent<T>::type type;
+    enum {
+        size = detail::sp_array_count<T>::value
+    };
+    typedef typename detail::sp_array_element<T>::type type;
     typedef typename detail::sp_array_scalar<T>::type scalar;
     typedef typename detail::sp_bind_allocator<A, scalar>::type other;
-    enum {
-        size = detail::sp_array_count<T, scalar>::value
-    };
     typedef detail::lsp_size_array_state<other, size> state;
     typedef detail::sp_array_base<state, false> base;
     detail::sp_array_result<other, base> result(allocator, size);

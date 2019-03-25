@@ -25,7 +25,7 @@
 //
 
 #include <boost/config.hpp>
-#include <boost/predef/platform/windows_runtime.h>
+#include <boost/predef.h>
 
 #if BOOST_PLAT_WINDOWS_RUNTIME
 #include <thread>
@@ -78,7 +78,7 @@ namespace detail
 
 #endif // !defined( BOOST_USE_WINDOWS_H ) && !BOOST_PLAT_WINDOWS_RUNTIME
 
-inline void yield( unsigned k ) BOOST_NOEXCEPT
+inline void yield( unsigned k )
 {
     if( k < 4 )
     {

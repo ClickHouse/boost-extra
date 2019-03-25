@@ -26,7 +26,6 @@
 
 #include <boost/checked_delete.hpp>
 #include <boost/smart_ptr/detail/sp_counted_base.hpp>
-#include <boost/smart_ptr/detail/sp_noexcept.hpp>
 #include <boost/core/addressof.hpp>
 
 #if defined(BOOST_SP_USE_QUICK_ALLOCATOR)
@@ -56,12 +55,12 @@ namespace detail
 
 template<class D> class local_sp_deleter;
 
-template<class D> D * get_local_deleter( D * /*p*/ ) BOOST_SP_NOEXCEPT
+template<class D> D * get_local_deleter( D * /*p*/ )
 {
     return 0;
 }
 
-template<class D> D * get_local_deleter( local_sp_deleter<D> * p ) BOOST_SP_NOEXCEPT;
+template<class D> D * get_local_deleter( local_sp_deleter<D> * p );
 
 //
 
@@ -85,7 +84,7 @@ public:
 #endif
     }
 
-    virtual void dispose() BOOST_SP_NOEXCEPT
+    virtual void dispose() // nothrow
     {
 #if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
         boost::sp_scalar_destructor_hook( px_, sizeof(X), this );
@@ -93,17 +92,17 @@ public:
         boost::checked_delete( px_ );
     }
 
-    virtual void * get_deleter( sp_typeinfo const & ) BOOST_SP_NOEXCEPT
+    virtual void * get_deleter( sp_typeinfo const & )
     {
         return 0;
     }
 
-    virtual void * get_local_deleter( sp_typeinfo const & ) BOOST_SP_NOEXCEPT
+    virtual void * get_local_deleter( sp_typeinfo const & )
     {
         return 0;
     }
 
-    virtual void * get_untyped_deleter() BOOST_SP_NOEXCEPT
+    virtual void * get_untyped_deleter()
     {
         return 0;
     }
@@ -168,22 +167,22 @@ public:
     {
     }
 
-    virtual void dispose() BOOST_SP_NOEXCEPT
+    virtual void dispose() // nothrow
     {
         del( ptr );
     }
 
-    virtual void * get_deleter( sp_typeinfo const & ti ) BOOST_SP_NOEXCEPT
+    virtual void * get_deleter( sp_typeinfo const & ti )
     {
         return ti == BOOST_SP_TYPEID(D)? &reinterpret_cast<char&>( del ): 0;
     }
 
-    virtual void * get_local_deleter( sp_typeinfo const & ti ) BOOST_SP_NOEXCEPT
+    virtual void * get_local_deleter( sp_typeinfo const & ti )
     {
         return ti == BOOST_SP_TYPEID(D)? boost::detail::get_local_deleter( boost::addressof( del ) ): 0;
     }
 
-    virtual void * get_untyped_deleter() BOOST_SP_NOEXCEPT
+    virtual void * get_untyped_deleter()
     {
         return &reinterpret_cast<char&>( del );
     }
@@ -242,12 +241,12 @@ public:
     {
     }
 
-    virtual void dispose() BOOST_SP_NOEXCEPT
+    virtual void dispose() // nothrow
     {
         d_( p_ );
     }
 
-    virtual void destroy() BOOST_SP_NOEXCEPT
+    virtual void destroy() // nothrow
     {
 #if !defined( BOOST_NO_CXX11_ALLOCATOR )
 
@@ -266,17 +265,17 @@ public:
         a2.deallocate( this, 1 );
     }
 
-    virtual void * get_deleter( sp_typeinfo const & ti ) BOOST_SP_NOEXCEPT
+    virtual void * get_deleter( sp_typeinfo const & ti )
     {
         return ti == BOOST_SP_TYPEID( D )? &reinterpret_cast<char&>( d_ ): 0;
     }
 
-    virtual void * get_local_deleter( sp_typeinfo const & ti ) BOOST_SP_NOEXCEPT
+    virtual void * get_local_deleter( sp_typeinfo const & ti )
     {
         return ti == BOOST_SP_TYPEID(D)? boost::detail::get_local_deleter( boost::addressof( d_ ) ): 0;
     }
 
-    virtual void * get_untyped_deleter() BOOST_SP_NOEXCEPT
+    virtual void * get_untyped_deleter()
     {
         return &reinterpret_cast<char&>( d_ );
     }
